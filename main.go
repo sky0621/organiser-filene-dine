@@ -18,13 +18,18 @@ import (
 const fileListName = "fileList.txt"
 
 func main() {
-	if len(os.Args) < 4 {
+	if len(os.Args) < 5 {
 		os.Exit(-1)
 	}
 
 	fromDir := os.Args[1]
 	toDir := os.Args[2]
-	targetExts := strings.Split(os.Args[3], ",")
+	rename := os.Args[3]
+	isRename := true
+	if rename == "0" {
+		isRename = false
+	}
+	targetExts := strings.Split(os.Args[4], ",")
 
 	fileList, err := os.Create(filepath.Join(toDir, fileListName))
 	if err != nil {
@@ -66,7 +71,7 @@ func main() {
 
 		log.Println(path)
 
-		return exec(path, existsSet, toDir, fi)
+		return exec(path, existsSet, toDir, fi, isRename)
 	}); err != nil {
 		log.Fatal(err)
 	}
@@ -79,7 +84,7 @@ func main() {
 	}
 }
 
-func exec(path string, existsSet mapset.Set[string], toDir string, fi fs.FileInfo) error {
+func exec(path string, existsSet mapset.Set[string], toDir string, fi fs.FileInfo, isRename bool) error {
 	name := fi.Name()
 	createdTime := getCreatedTime(fi)
 	size := fi.Size()
@@ -101,6 +106,9 @@ func exec(path string, existsSet mapset.Set[string], toDir string, fi fs.FileInf
 	 * Output File
 	 */
 	outFileName := createOutFileName(createdTime, size, getExt(name))
+	if !isRename {
+		outFileName = name
+	}
 	outFile, err := os.Create(filepath.Join(toDir, outDirName, outFileName))
 	if err != nil {
 		log.Println(err)
