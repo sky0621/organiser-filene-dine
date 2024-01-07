@@ -18,12 +18,13 @@ import (
 const fileListName = "fileList.txt"
 
 func main() {
-	if len(os.Args) < 3 {
+	if len(os.Args) < 4 {
 		os.Exit(-1)
 	}
 
 	fromDir := os.Args[1]
 	toDir := os.Args[2]
+	targetExts := strings.Split(os.Args[3], ",")
 
 	fileList, err := os.Create(filepath.Join(toDir, fileListName))
 	if err != nil {
@@ -58,19 +59,12 @@ func main() {
 			return nil
 		}
 
-		if strings.HasPrefix(fi.Name(), ".") {
+		if !contains(targetExts, getExt(fi.Name())) {
+			log.Println("[NOT_TARGET]", fi.Name())
 			return nil
 		}
 
 		log.Println(path)
-
-		// -------------------------------------
-		statT := fi.Sys().(*syscall.Stat_t)
-		m := formatTime(toTime(statT.Mtimespec))
-		log.Printf("Mtime: %s\n", m)
-		b := formatTime(toTime(statT.Birthtimespec))
-		log.Printf("Btime: %s\n", b)
-		// -------------------------------------
 
 		return exec(path, existsSet, toDir, fi)
 	}); err != nil {
@@ -189,4 +183,14 @@ func toTime(ts syscall.Timespec) time.Time {
 func getCreatedTime(fi fs.FileInfo) time.Time {
 	statT := fi.Sys().(*syscall.Stat_t)
 	return toTime(statT.Birthtimespec)
+}
+
+func contains(strs []string, s string) bool {
+	ls := strings.ToLower(s)
+	for _, str := range strs {
+		if str == ls {
+			return true
+		}
+	}
+	return false
 }

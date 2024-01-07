@@ -2,7 +2,7 @@
   <configuration default="false" name="go build github.com/sky0621/organiser-filene-dine" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
     <module name="organiser-filene-dine" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="$USER_HOME$/Desktop/yuito $USER_HOME$/Desktop/yuito_to" />
+    <parameters value="$USER_HOME$/Desktop/yuito_sample $USER_HOME$/Desktop/yuito_to .jpg,.jpeg,.png" />
     <kind value="PACKAGE" />
     <package value="github.com/sky0621/organiser-filene-dine" />
     <directory value="$PROJECT_DIR$" />
