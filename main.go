@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -46,7 +47,6 @@ func main() {
 			log.Println(err)
 			return err
 		}
-		log.Println(path)
 
 		fi, err := d.Info()
 		if err != nil {
@@ -62,6 +62,16 @@ func main() {
 			return nil
 		}
 
+		log.Println(path)
+
+		// -------------------------------------
+		statT := fi.Sys().(*syscall.Stat_t)
+		m := formatTime(toTime(statT.Mtimespec))
+		log.Printf("Mtime: %s\n", m)
+		b := formatTime(toTime(statT.Birthtimespec))
+		log.Printf("Btime: %s\n", b)
+		// -------------------------------------
+
 		return exec(path, existsSet, toDir, fi)
 	}); err != nil {
 		log.Fatal(err)
@@ -76,14 +86,18 @@ func main() {
 }
 
 func exec(path string, existsSet mapset.Set[string], toDir string, fi fs.FileInfo) error {
-	if !addExists(existsSet, fi) {
+	name := fi.Name()
+	createdTime := getCreatedTime(fi)
+	size := fi.Size()
+
+	if !addExists(existsSet, createExistsSetElement(name, formatTime(createdTime), size)) {
 		return nil
 	}
 
 	/*
 	 * Output Directory
 	 */
-	outDirName := getOutputDirName(fi.ModTime())
+	outDirName := getOutputDirName(createdTime)
 	if err := createOutputDir(toDir, outDirName); err != nil {
 		log.Println(err)
 		return nil
@@ -92,7 +106,8 @@ func exec(path string, existsSet mapset.Set[string], toDir string, fi fs.FileInf
 	/*
 	 * Output File
 	 */
-	outFile, err := os.Create(filepath.Join(toDir, outDirName, createOutFileName(fi)))
+	outFileName := createOutFileName(createdTime, size, getExt(name))
+	outFile, err := os.Create(filepath.Join(toDir, outDirName, outFileName))
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -128,28 +143,35 @@ func exec(path string, existsSet mapset.Set[string], toDir string, fi fs.FileInf
 	return nil
 }
 
-func addExists(existsSet mapset.Set[string], fi fs.FileInfo) bool {
-	key := fmt.Sprintf("%s%s%d", fi.Name(), formatModTime(fi.ModTime()), fi.Size())
-	if existsSet.Contains(key) {
+func createExistsSetElement(name string, birthTime string, size int64) string {
+	return fmt.Sprintf("%s%s%d", name, birthTime, size)
+}
+
+func addExists(existsSet mapset.Set[string], element string) bool {
+	if existsSet.Contains(element) {
 		log.Println("=====================")
-		log.Println("EXISTS:", key)
+		log.Println("EXISTS:", element)
 		log.Println("=====================")
 		return false
 	}
-	existsSet.Add(key)
+	existsSet.Add(element)
 	return true
 }
 
-func formatModTime(modTime time.Time) string {
-	return modTime.Format("2006-01-02T15h04m05s")
+func formatTime(t time.Time) string {
+	return t.Format("2006-01-02T15h04m05s")
 }
 
-func createOutFileName(fi fs.FileInfo) string {
-	return fmt.Sprintf("%s_%d%s", formatModTime(fi.ModTime()), fi.Size(), filepath.Ext(fi.Name()))
+func getExt(fileName string) string {
+	return filepath.Ext(fileName)
 }
 
-func getOutputDirName(modTime time.Time) string {
-	return modTime.Format("200601")
+func createOutFileName(createdTime time.Time, size int64, ext string) string {
+	return fmt.Sprintf("%s_%d%s", formatTime(createdTime), size, ext)
+}
+
+func getOutputDirName(t time.Time) string {
+	return t.Format("200601")
 }
 
 func createOutputDir(toDir string, outDirName string) error {
@@ -158,4 +180,13 @@ func createOutputDir(toDir string, outDirName string) error {
 		return os.Mkdir(outDir, fs.ModePerm)
 	}
 	return nil
+}
+
+func toTime(ts syscall.Timespec) time.Time {
+	return time.Unix(ts.Sec, ts.Nsec)
+}
+
+func getCreatedTime(fi fs.FileInfo) time.Time {
+	statT := fi.Sys().(*syscall.Stat_t)
+	return toTime(statT.Birthtimespec)
 }
