@@ -230,7 +230,7 @@ func main() {
 		log.Printf("NumCPU: %d\n", cpuNum)
 
 		// ★ 同時実行 goroutine 数の制御のためにチャネル用意
-		semaphore := make(chan struct{}, cpuNum*8)
+		semaphore := make(chan struct{}, cpuNum*4)
 
 		wg := &sync.WaitGroup{}
 
@@ -241,9 +241,12 @@ func main() {
 
 			line := copyListFileScanner.Text()
 			fromTo := strings.Split(line, seps)
-			if err := copyFile(fromTo[0], fromTo[1], errorList, semaphore, wg); err != nil {
-				log.Fatal(err)
-			}
+			go func() {
+				err := copyFile(fromTo[0], fromTo[1], errorList, semaphore, wg)
+				if err != nil {
+					log.Println(err)
+				}
+			}()
 		}
 
 		wg.Wait()
