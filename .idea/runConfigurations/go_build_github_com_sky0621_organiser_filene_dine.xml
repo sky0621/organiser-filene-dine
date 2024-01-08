@@ -2,7 +2,7 @@
   <configuration default="false" name="go build github.com/sky0621/organiser-filene-dine" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
     <module name="organiser-filene-dine" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="&quot;/Volumes/HD-LCU3 1&quot; /Volumes/DELLRESTORE 0 .zip" />
+    <parameters value="&quot;/Volumes/HD-LCU3 1&quot; /Volumes/SSD/pics 1 .jpg,.jpeg,.png,.gif,.avif,.webp,.tiff,.svg,.bmp,.psd,.raw" />
     <kind value="PACKAGE" />
     <package value="github.com/sky0621/organiser-filene-dine" />
     <directory value="$PROJECT_DIR$" />
