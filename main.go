@@ -142,6 +142,7 @@ func main() {
 		}()
 
 		for _, outputDir := range outputDirSet.ToSlice() {
+			log.Println(outputDir)
 			_, err := outputDirSetFile.WriteString(fmt.Sprintf("%s\n", filepath.Join(cfg.ToDir, outputDir)))
 			if err != nil {
 				log.Fatal(err)
