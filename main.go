@@ -182,7 +182,8 @@ func main() {
 			dirPath := outputDirSetFileScanner.Text()
 			if err := os.Mkdir(dirPath, fs.ModePerm); err != nil {
 				log.Printf("failed to mkdir: %s", dirPath)
-				log.Fatal(err)
+				log.Println(err)
+				continue
 			}
 			log.Printf("created: %s\n", dirPath)
 		}
@@ -302,7 +303,7 @@ func copyFile(fromPath string, toPath string, errorList *os.File, semaphore chan
 
 	toFile, err := os.Create(toPath)
 	if err != nil {
-		log.Println("[[[ failed to open toFile ]]]")
+		log.Println("[[[ failed to create toFile ]]]")
 		log.Println(err)
 		_, err = errorList.WriteString(toPath + "\n")
 		if err != nil {
