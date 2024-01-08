@@ -231,7 +231,7 @@ func main() {
 		log.Printf("NumCPU: %d\n", cpuNum)
 
 		// ★ 同時実行 goroutine 数の制御のためにチャネル用意
-		semaphore := make(chan struct{}, cpuNum*4)
+		semaphore := make(chan struct{}, cpuNum*6)
 
 		wg := &sync.WaitGroup{}
 
@@ -305,7 +305,7 @@ func copyFile(fromPath string, toPath string, errorList *os.File, semaphore chan
 	if err != nil {
 		log.Println("[[[ failed to create toFile ]]]")
 		log.Println(err)
-		_, err = errorList.WriteString(toPath + "\n")
+		_, err = errorList.WriteString(fmt.Sprintf("[from:%s] [to:%s]\n", fromPath, toPath))
 		if err != nil {
 			log.Println(err)
 		}
