@@ -1,4 +1,6 @@
-fromDir: "/Volumes/HD-LCU3 1"
+#fromDir: "/Volumes/HD-LCU3 1"
+fromDir: "/Volumes/HD-LCU3"
+#toDir: "/Volumes/SSD/pics"
 toDir: "/Volumes/SSD/pics"
 targetExts: "Pictures"
 targetDocumentsExts: [".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".tsv", ".ini", ".ppt", ".pptx", ".xml", ".epub", ".md", ".url"]
@@ -6,4 +8,4 @@ targetPicturesExts: [".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp", ".tiff",
 targetMusicsExts: [".mp3", ".wav", ".aiff", ".wma", ".aac"]
 targetMoviesExts: [".mp4", ".avi", ".mov", ".webm", ".flv", ".wmv", ".avchd", ".f4v", ".swf", ".mkv"]
 rename: true
-operation: 3
+operation: 2

@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/spf13/viper"
 	"io"
 	"io/fs"
 	"log"
@@ -12,10 +11,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
-
-	mapset "github.com/deckarep/golang-set/v2"
 )
 
 const (
@@ -25,24 +21,11 @@ const (
 	operationCopy         = 3
 )
 
-const copyListFileName = "copyList.txt"
 const seps = "#-#-#$%&**&%$#-#-#"
 
 const outputDirSetFileName = "outputDirSet.txt"
 
 const errorListName = "errorList.txt"
-
-type Config struct {
-	FromDir             string   `yaml:"fromDir"`
-	ToDir               string   `yaml:"toDir"`
-	TargetExts          string   `yaml:"targetExts"`
-	TargetDocumentsExts []string `yaml:"targetDocumentsExts"`
-	TargetPicturesExts  []string `yaml:"targetPicturesExts"`
-	TargetMusicsExts    []string `yaml:"targetMusicsExts"`
-	TargetMoviesExts    []string `yaml:"targetMoviesExts"`
-	Rename              bool     `yaml:"rename"`
-	Operation           int      `yaml:"operation"`
-}
 
 func getTargetExts(conf Config) []string {
 	switch conf.TargetExts {
@@ -59,113 +42,21 @@ func getTargetExts(conf Config) []string {
 }
 
 func main() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("config/")
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatal(err)
-	}
-
-	var cfg Config
-	if err := viper.Unmarshal(&cfg); err != nil {
-		log.Fatal(err)
-	}
-
-	targetExts := getTargetExts(cfg)
+	cfg := getConfig()
 
 	/****************************************************************
 	 * create copy list
 	 */
-	outputDirSet := mapset.NewSet[string]()
 	if cfg.Operation == operationPrepare || cfg.Operation == operationAll {
-		prepareLogFile, err := os.OpenFile("organiser-filene-dine-prepare.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer func() {
-			if err := prepareLogFile.Close(); err != nil {
-				log.Println(err)
-			}
-		}()
-
-		log.SetOutput(prepareLogFile)
-
-		copyListFile, err := os.Create(filepath.Join(cfg.ToDir, copyListFileName))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer func() {
-			if err := copyListFile.Close(); err != nil {
-				log.Fatal(err)
-			}
-		}()
-
-		if err := filepath.WalkDir(cfg.FromDir, func(path string, d os.DirEntry, err error) error {
-			if err != nil {
-				log.Println("[ 01 ]")
-				log.Println(err)
-				return err
-			}
-
-			fi, err := d.Info()
-			if err != nil {
-				log.Println("[ 02 ]")
-				log.Println(err)
-				return nil
-			}
-
-			if fi.IsDir() {
-				return nil
-			}
-
-			if !contains(targetExts, getExt(fi.Name())) {
-				log.Println("[NOT_TARGET]", fi.Name())
-				return nil
-			}
-
-			log.Println(path)
-
-			return prepare(path, cfg.ToDir, fi, cfg.Rename, copyListFile, outputDirSet)
-		}); err != nil {
-			log.Fatal(err)
-		}
-
-		outputDirSetFile, err := os.Create(filepath.Join(cfg.ToDir, outputDirSetFileName))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer func() {
-			if err := outputDirSetFile.Close(); err != nil {
-				log.Fatal(err)
-			}
-		}()
-
-		for _, outputDir := range outputDirSet.ToSlice() {
-			log.Println(outputDir)
-			_, err := outputDirSetFile.WriteString(fmt.Sprintf("%s\n", filepath.Join(cfg.ToDir, outputDir)))
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+		listUp(cfg)
 	}
 
 	/****************************************************************
 	 * create output directory
 	 */
 	if cfg.Operation == operationCreateOutDir || cfg.Operation == operationAll {
-		outputdirLogFile, err := os.OpenFile("organiser-filene-dine-outputdir.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer func() {
-			if err := outputdirLogFile.Close(); err != nil {
-				log.Println(err)
-			}
-		}()
-
-		log.SetOutput(outputdirLogFile)
+		closeFunc := setupLog("outputdir")
+		defer closeFunc()
 
 		outputDirSetFile, err := os.Open(filepath.Join(cfg.ToDir, outputDirSetFileName))
 		if err != nil {
@@ -194,18 +85,9 @@ func main() {
 	 * copy
 	 */
 	if cfg.Operation == operationCopy || cfg.Operation == operationAll {
-		copyLogFile, err := os.OpenFile("organiser-filene-dine-copy.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatal(err)
-		}
+		closeFunc := setupLog("copy")
+		defer closeFunc()
 
-		defer func() {
-			if err := copyLogFile.Close(); err != nil {
-				log.Println(err)
-			}
-		}()
-
-		log.SetOutput(copyLogFile)
 		log.Printf("START: %s\n", time.Now().Format(time.RFC3339))
 
 		copyListFile, err := os.Open(filepath.Join(cfg.ToDir, copyListFileName))
@@ -255,29 +137,6 @@ func main() {
 		log.Printf("END  : %s\n", time.Now().Format(time.RFC3339))
 	}
 
-}
-
-func prepare(fromPath string, toDir string, fi fs.FileInfo, rename bool, copyList *os.File, outputDirSet mapset.Set[string]) error {
-	outDirName := getOutputDirName(fromPath)
-	outputDirSet.Add(outDirName)
-
-	outFileName := ""
-	if rename {
-		outFileName = createOutFileName(getCreatedTime(fi), fi.Size(), getExt(fi.Name()))
-	} else {
-		outFileName = fi.Name()
-	}
-
-	toPath := filepath.Join(toDir, outDirName, outFileName)
-
-	_, err := copyList.WriteString(fmt.Sprintf("%s%s%s\n", fromPath, seps, toPath))
-	if err != nil {
-		log.Println("[[[ failed to copyList.WriteString ]]]")
-		log.Println(err)
-		return err
-	}
-
-	return nil
 }
 
 func copyFile(fromPath string, toPath string, errorList *os.File, semaphore chan struct{}, wg *sync.WaitGroup) error {
@@ -330,45 +189,4 @@ func copyFile(fromPath string, toPath string, errorList *os.File, semaphore chan
 	log.Printf("copied:[from:%s] [to:%s]\n", fromPath, toPath)
 
 	return nil
-}
-
-func formatTime(t time.Time) string {
-	return t.Format("2006-01-02T15h04m05s")
-}
-
-func getExt(fileName string) string {
-	return filepath.Ext(fileName)
-}
-
-func createOutFileName(createdTime time.Time, size int64, ext string) string {
-	return fmt.Sprintf("%s_%d%s", formatTime(createdTime), size, ext)
-}
-
-func getOutputDirName(path string) string {
-	dir, _ := filepath.Split(path)
-	dirs := strings.Split(dir, "/")
-	if len(dirs) < 2 {
-		return "root"
-	}
-	ret := dirs[len(dirs)-2]
-	return ret
-}
-
-func toTime(ts syscall.Timespec) time.Time {
-	return time.Unix(ts.Sec, ts.Nsec)
-}
-
-func getCreatedTime(fi fs.FileInfo) time.Time {
-	statT := fi.Sys().(*syscall.Stat_t)
-	return toTime(statT.Birthtimespec)
-}
-
-func contains(strs []string, s string) bool {
-	ls := strings.ToLower(s)
-	for _, str := range strs {
-		if str == ls {
-			return true
-		}
-	}
-	return false
 }
