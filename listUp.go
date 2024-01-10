@@ -52,7 +52,7 @@ func listUp(cfg Config) {
 		log.Fatal(err)
 	}
 
-	outputDirSetFile, closeOutputDirSetFile := openOutputDirSetFile(cfg.ToDir)
+	outputDirSetFile, closeOutputDirSetFile := openFile(getOutputDirSetFilePath(cfg.ToDir))
 	defer closeOutputDirSetFile()
 
 	for _, outputDir := range outputDirSet.ToSlice() {

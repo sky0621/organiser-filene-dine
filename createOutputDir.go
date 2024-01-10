@@ -5,13 +5,16 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
 )
 
+const createOutputDirLogFileName = "createOutputDir.log"
+
 func createOutputDir(cfg Config) {
-	closeLogFile := setupLog("createOutputDir")
+	closeLogFile := openCreateOutputDirLogFile(cfg.ToDir)
 	defer closeLogFile()
 
-	outputDirSetFile, closeOutputDirSetFile := openOutputDirSetFile(cfg.ToDir)
+	outputDirSetFile, closeOutputDirSetFile := open(getOutputDirSetFilePath(cfg.ToDir))
 	defer closeOutputDirSetFile()
 
 	outputDirSetFileScanner := bufio.NewScanner(outputDirSetFile)
@@ -23,4 +26,8 @@ func createOutputDir(cfg Config) {
 		}
 		log.Printf("created: %s\n", dirPath)
 	}
+}
+
+func openCreateOutputDirLogFile(rootPath string) CloseFunc {
+	return setupLog(filepath.Join(rootPath, metaDir, createOutputDirLogFileName))
 }

@@ -15,8 +15,21 @@ const outputDirSetFileName = "outputDirSet.txt"
 
 type CloseFunc func()
 
+func open(path string) (*os.File, CloseFunc) {
+	f, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return f, func() {
+		if err := f.Close(); err != nil {
+			log.Println(err)
+		}
+	}
+}
+
 func openFile(path string) (*os.File, CloseFunc) {
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,8 +54,8 @@ func createDirectory(path string) {
 	}
 }
 
-func openOutputDirSetFile(rootDir string) (*os.File, func()) {
-	return openFile(filepath.Join(rootDir, metaDir, outputDirSetFileName))
+func getOutputDirSetFilePath(rootPath string) string {
+	return filepath.Join(rootPath, metaDir, outputDirSetFileName)
 }
 
 func getExt(fileName string) string {
