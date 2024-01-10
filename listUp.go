@@ -13,11 +13,12 @@ import (
 )
 
 const copyListFileName = "copyList.txt"
+const listUpLogFileName = "listUp.log"
 
 func listUp(cfg Config) {
 	outputDirSet := mapset.NewSet[string]()
 
-	closeLogFile := setupLog("listUp")
+	closeLogFile := openListUpLogFile(cfg.ToDir)
 	defer closeLogFile()
 
 	copyListFile, closeCopyListFile := openCopyListFile(cfg.ToDir)
@@ -78,30 +79,40 @@ func prepare(fromPath string, toDir string, fi fs.FileInfo, rename bool, copyLis
 
 	_, err := copyList.WriteString(fmt.Sprintf("%s%s%s\n", fromPath, seps, toPath))
 	if err != nil {
-		log.Println("[[[ failed to copyList.WriteString ]]]")
-		log.Println(err)
+		log.Println("[[[ failed to copyList.WriteString ]]]", err)
 		return err
 	}
 
 	return nil
 }
 
-func openCopyListFile(rootDir string) (*os.File, func()) {
-	return openFile(filepath.Join(rootDir, copyListFileName))
+func getTargetExts(conf Config) []string {
+	switch conf.TargetExts {
+	case "Documents":
+		return conf.TargetDocumentsExts
+	case "Pictures":
+		return conf.TargetPicturesExts
+	case "Musics":
+		return conf.TargetMusicsExts
+	case "Movies":
+		return conf.TargetMoviesExts
+	}
+	return nil
 }
 
-func openOutputDirSetFile(rootDir string) (*os.File, func()) {
-	return openFile(filepath.Join(rootDir, outputDirSetFileName))
+func openListUpLogFile(rootPath string) CloseFunc {
+	return setupLog(filepath.Join(rootPath, metaDir, listUpLogFileName))
 }
 
-func contains(strs []string, s string) bool {
-	ls := strings.ToLower(s)
-	for _, str := range strs {
-		if str == ls {
-			return true
+func openCopyListFile(rootDir string) (*os.File, CloseFunc) {
+	copyListFilePath := filepath.Join(rootDir, metaDir, copyListFileName)
+	copyListFileBackupPath := filepath.Join(rootDir, metaDir, copyListFileName+"_"+time.Now().Format("20060102150405"))
+	if err := renameFile(copyListFilePath, copyListFileBackupPath); err != nil {
+		if !strings.Contains(err.Error(), "no such file or directory") {
+			log.Fatal(err)
 		}
 	}
-	return false
+	return openFile(copyListFilePath)
 }
 
 func getOutputDirName(path string) string {

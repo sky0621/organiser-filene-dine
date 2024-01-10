@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 )
 
-func setupLog(name string) CloseFunc {
-	logFile, closeFunc := openFile(fmt.Sprintf("organiser-filene-dine-%s.log", name))
+func setupLog(path string) CloseFunc {
+	logFile, closeFunc := openFile(path)
 	log.SetOutput(logFile)
 	return closeFunc
 }

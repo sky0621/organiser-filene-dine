@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,28 +20,12 @@ const (
 	operationCopy         = 3
 )
 
-const seps = "#-#-#$%&**&%$#-#-#"
-
-const outputDirSetFileName = "outputDirSet.txt"
-
 const errorListName = "errorList.txt"
-
-func getTargetExts(conf Config) []string {
-	switch conf.TargetExts {
-	case "Documents":
-		return conf.TargetDocumentsExts
-	case "Pictures":
-		return conf.TargetPicturesExts
-	case "Musics":
-		return conf.TargetMusicsExts
-	case "Movies":
-		return conf.TargetMoviesExts
-	}
-	return nil
-}
 
 func main() {
 	cfg := getConfig()
+
+	createDirectory(filepath.Join(cfg.ToDir, metaDir))
 
 	/****************************************************************
 	 * create copy list
@@ -55,30 +38,7 @@ func main() {
 	 * create output directory
 	 */
 	if cfg.Operation == operationCreateOutDir || cfg.Operation == operationAll {
-		closeFunc := setupLog("outputdir")
-		defer closeFunc()
-
-		outputDirSetFile, err := os.Open(filepath.Join(cfg.ToDir, outputDirSetFileName))
-		if err != nil {
-			log.Printf("failed to open %s\n", outputDirSetFileName)
-			log.Fatal(err)
-		}
-		defer func() {
-			if err := outputDirSetFile.Close(); err != nil {
-				log.Fatal(err)
-			}
-		}()
-
-		outputDirSetFileScanner := bufio.NewScanner(outputDirSetFile)
-		for outputDirSetFileScanner.Scan() {
-			dirPath := outputDirSetFileScanner.Text()
-			if err := os.Mkdir(dirPath, fs.ModePerm); err != nil {
-				log.Printf("failed to mkdir: %s", dirPath)
-				log.Println(err)
-				continue
-			}
-			log.Printf("created: %s\n", dirPath)
-		}
+		createOutputDir(cfg)
 	}
 
 	/****************************************************************
