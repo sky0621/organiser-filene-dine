@@ -1,7 +1,5 @@
-#fromDir: "/Volumes/HD-LCU3 1"
-fromDir: "/Volumes/HD-LCU3/yuito_pics"
-#toDir: "/Volumes/SSD/pics"
-toDir: "/Users/sky0621/Documents/HD-LCU3/pics/yuito_pics"
+fromDir: "/Volumes/HD-LCU3 1"
+toDir: "/Volumes/SSD/pics"
 targetExts: "Pictures"
 targetDocumentsExts: [".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".tsv", ".ini", ".ppt", ".pptx", ".xml", ".epub", ".md", ".url"]
 targetPicturesExts: [".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp", ".tiff", ".svg", ".bmp", ".psd", ".raw"]
