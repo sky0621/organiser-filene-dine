@@ -10,9 +10,9 @@ type Config struct {
 	ToDir               string   `yaml:"toDir"`
 	TargetExts          string   `yaml:"targetExts"`
 	TargetDocumentsExts []string `yaml:"targetDocumentsExts"`
-	TargetPicturesExts  []string `yaml:"targetPicturesExts"`
+	TargetImagesExts    []string `yaml:"targetImagesExts"`
 	TargetMusicsExts    []string `yaml:"targetMusicsExts"`
-	TargetMoviesExts    []string `yaml:"targetMoviesExts"`
+	TargetVideosExts    []string `yaml:"targetVideosExts"`
 	Rename              bool     `yaml:"rename"`
 	Operation           int      `yaml:"operation"`
 }
@@ -32,3 +32,10 @@ func getConfig() Config {
 	}
 	return cfg
 }
+
+const TargetExtsAll = "all"
+const TargetExtsDocuments = "documents"
+const TargetExtsImages = "images"
+const TargetExtsMusics = "musics"
+const TargetExtsVideos = "videos"
+const TargetExtsOthers = "others"

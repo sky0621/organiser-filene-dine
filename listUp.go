@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/google/uuid"
 	"io/fs"
 	"log"
 	"os"
@@ -24,6 +25,8 @@ func listUp(cfg Config) {
 	copyListFile, closeCopyListFile := openCopyListFile(cfg.ToDir)
 	defer closeCopyListFile()
 
+	createOutputExtsDirectory(cfg)
+
 	if err := filepath.WalkDir(cfg.FromDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			log.Println("failed to WalkDir", err)
@@ -40,14 +43,14 @@ func listUp(cfg Config) {
 			return nil
 		}
 
-		if !contains(getTargetExts(cfg), getExt(fi.Name())) {
+		if cfg.TargetExts != TargetExtsAll && !contains(getTargetExts(cfg), getExt(fi.Name())) {
 			log.Println("[NOT_TARGET]", fi.Name())
 			return nil
 		}
 
 		log.Println(path)
 
-		return prepare(path, cfg.ToDir, fi, cfg.Rename, copyListFile, outputDirSet)
+		return prepare(path, fi, cfg, copyListFile, outputDirSet)
 	}); err != nil {
 		log.Fatal(err)
 	}
@@ -64,18 +67,19 @@ func listUp(cfg Config) {
 	}
 }
 
-func prepare(fromPath string, toDir string, fi fs.FileInfo, rename bool, copyList *os.File, outputDirSet mapset.Set[string]) error {
+func prepare(fromPath string, fi fs.FileInfo, cfg Config, copyList *os.File, outputDirSet mapset.Set[string]) error {
 	outDirName := getOutputDirName(fromPath)
-	outputDirSet.Add(outDirName)
+	extsDir := getOutputExtsDirectoryName(getExt(fi.Name()), cfg)
+	outputDirSet.Add(filepath.Join(extsDir, outDirName))
 
 	outFileName := ""
-	if rename {
-		outFileName = createOutFileName(getCreatedTime(fi), fi.Size(), getExt(fi.Name()))
+	if cfg.Rename {
+		outFileName = createOutFileName(getCreatedTime(fi), uuid.NewString(), fi.Name())
 	} else {
 		outFileName = fi.Name()
 	}
 
-	toPath := filepath.Join(toDir, outDirName, outFileName)
+	toPath := filepath.Join(cfg.ToDir, extsDir, outDirName, outFileName)
 
 	_, err := copyList.WriteString(fmt.Sprintf("%s%s%s\n", fromPath, seps, toPath))
 	if err != nil {
@@ -86,16 +90,56 @@ func prepare(fromPath string, toDir string, fi fs.FileInfo, rename bool, copyLis
 	return nil
 }
 
-func getTargetExts(conf Config) []string {
-	switch conf.TargetExts {
-	case "Documents":
-		return conf.TargetDocumentsExts
-	case "Pictures":
-		return conf.TargetPicturesExts
-	case "Musics":
-		return conf.TargetMusicsExts
-	case "Movies":
-		return conf.TargetMoviesExts
+func createOutputExtsDirectory(cfg Config) {
+	if cfg.TargetExts == TargetExtsAll {
+		createDirectory(filepath.Join(cfg.ToDir, "documents"))
+		createDirectory(filepath.Join(cfg.ToDir, "images"))
+		createDirectory(filepath.Join(cfg.ToDir, "musics"))
+		createDirectory(filepath.Join(cfg.ToDir, "videos"))
+		createDirectory(filepath.Join(cfg.ToDir, "others"))
+		return
+	}
+
+	switch cfg.TargetExts {
+	case TargetExtsDocuments:
+		createDirectory(filepath.Join(cfg.ToDir, "documents"))
+	case TargetExtsImages:
+		createDirectory(filepath.Join(cfg.ToDir, "images"))
+	case TargetExtsMusics:
+		createDirectory(filepath.Join(cfg.ToDir, "musics"))
+	case TargetExtsVideos:
+		createDirectory(filepath.Join(cfg.ToDir, "videos"))
+	default:
+		createDirectory(filepath.Join(cfg.ToDir, "others"))
+	}
+}
+
+func getOutputExtsDirectoryName(ext string, cfg Config) string {
+	if contains(cfg.TargetDocumentsExts, ext) {
+		return TargetExtsDocuments
+	}
+	if contains(cfg.TargetImagesExts, ext) {
+		return TargetExtsImages
+	}
+	if contains(cfg.TargetMusicsExts, ext) {
+		return TargetExtsMusics
+	}
+	if contains(cfg.TargetVideosExts, ext) {
+		return TargetExtsVideos
+	}
+	return TargetExtsOthers
+}
+
+func getTargetExts(cfg Config) []string {
+	switch cfg.TargetExts {
+	case TargetExtsDocuments:
+		return cfg.TargetDocumentsExts
+	case TargetExtsImages:
+		return cfg.TargetImagesExts
+	case TargetExtsMusics:
+		return cfg.TargetMusicsExts
+	case TargetExtsVideos:
+		return cfg.TargetVideosExts
 	}
 	return nil
 }
@@ -117,11 +161,15 @@ func openCopyListFile(rootPath string) (*os.File, CloseFunc) {
 
 func getOutputDirName(path string) string {
 	dir, _ := filepath.Split(path)
-	dirs := strings.Split(dir, "/")
-	if len(dirs) < 2 {
-		return "root"
+	ret := strings.ReplaceAll(dir, "/", "___")
+	if ret == "" {
+		ret = "root"
 	}
-	ret := dirs[len(dirs)-2]
+	//dirs := strings.Split(dir, "/")
+	//if len(dirs) < 2 {
+	//	return "root"
+	//}
+	//ret := dirs[len(dirs)-2]
 	return ret
 }
 
@@ -138,6 +186,6 @@ func formatTime(t time.Time) string {
 	return t.Format("2006-01-02T15h04m05s")
 }
 
-func createOutFileName(createdTime time.Time, size int64, ext string) string {
-	return fmt.Sprintf("%s_%d%s", formatTime(createdTime), size, ext)
+func createOutFileName(createdTime time.Time, uuid string, fileName string) string {
+	return fmt.Sprintf("%s_%s_%s", formatTime(createdTime), uuid, fileName)
 }

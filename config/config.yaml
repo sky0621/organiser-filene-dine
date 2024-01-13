@@ -1,9 +1,9 @@
-fromDir: "/Volumes/HD-LCU3 1"
-toDir: "/Volumes/SSD/pics"
-targetExts: "Pictures"
+fromDir: "/Volumes/HD-LCU3/AQUOS_SHV40_Backup"
+toDir: "/Users/sky0621/Documents/HD-LCU3"
+targetExts: "all"
 targetDocumentsExts: [".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".tsv", ".ini", ".ppt", ".pptx", ".xml", ".epub", ".md", ".url"]
-targetPicturesExts: [".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp", ".tiff", ".svg", ".bmp", ".psd", ".raw"]
+targetImagesExts: [".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp", ".tiff", ".svg", ".bmp", ".psd", ".raw"]
 targetMusicsExts: [".mp3", ".wav", ".aiff", ".wma", ".aac"]
-targetMoviesExts: [".mp4", ".avi", ".mov", ".webm", ".flv", ".wmv", ".avchd", ".f4v", ".swf", ".mkv"]
+targetVideosExts: [".mp4", ".avi", ".mov", ".webm", ".flv", ".wmv", ".avchd", ".f4v", ".swf", ".mkv"]
 rename: true
-operation: 9
+operation: 3

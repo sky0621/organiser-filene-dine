@@ -4,6 +4,7 @@ go 1.21.1
 
 require (
 	github.com/deckarep/golang-set/v2 v2.6.0
+	github.com/google/uuid v1.4.0
 	github.com/spf13/viper v1.18.2
 )
 
