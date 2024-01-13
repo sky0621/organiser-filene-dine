@@ -104,9 +104,9 @@ func openListUpLogFile(rootPath string) CloseFunc {
 	return setupLog(filepath.Join(rootPath, metaDir, listUpLogFileName))
 }
 
-func openCopyListFile(rootDir string) (*os.File, CloseFunc) {
-	copyListFilePath := filepath.Join(rootDir, metaDir, copyListFileName)
-	copyListFileBackupPath := filepath.Join(rootDir, metaDir, copyListFileName+"_"+time.Now().Format("20060102150405"))
+func openCopyListFile(rootPath string) (*os.File, CloseFunc) {
+	copyListFilePath := getCopyListFilePath(rootPath)
+	copyListFileBackupPath := getCopyListBackupFilePath(rootPath)
 	if err := renameFile(copyListFilePath, copyListFileBackupPath); err != nil {
 		if !strings.Contains(err.Error(), "no such file or directory") {
 			log.Fatal(err)

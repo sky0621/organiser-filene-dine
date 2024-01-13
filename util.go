@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const metaDir = ".organiser-filene-dine"
@@ -52,6 +53,14 @@ func createDirectory(path string) {
 		}
 		log.Fatal(err)
 	}
+}
+
+func getCopyListFilePath(rootPath string) string {
+	return filepath.Join(rootPath, metaDir, copyListFileName)
+}
+
+func getCopyListBackupFilePath(rootPath string) string {
+	return filepath.Join(rootPath, metaDir, copyListFileName+"_"+time.Now().Format("20060102150405"))
 }
 
 func getOutputDirSetFilePath(rootPath string) string {
