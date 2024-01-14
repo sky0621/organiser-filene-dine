@@ -68,7 +68,7 @@ func getOutputDirSetFilePath(rootPath string) string {
 }
 
 func getExt(fileName string) string {
-	return filepath.Ext(fileName)
+	return strings.ToLower(filepath.Ext(fileName))
 }
 
 func contains(strs []string, s string) bool {

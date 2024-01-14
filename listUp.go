@@ -27,6 +27,8 @@ func listUp(cfg Config) {
 
 	createOutputExtsDirectory(cfg)
 
+	allTargetExts := getAllTargetExts(cfg)
+
 	if err := filepath.WalkDir(cfg.FromDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			log.Println("failed to WalkDir", err)
@@ -43,13 +45,24 @@ func listUp(cfg Config) {
 			return nil
 		}
 
-		if cfg.TargetExts != TargetExtsAll && !contains(getTargetExts(cfg), getExt(fi.Name())) {
-			log.Println("[NOT_TARGET]", fi.Name())
-			return nil
+		if cfg.TargetExts == TargetExtsAll {
+			log.Println(path)
+			return prepare(path, fi, cfg, copyListFile, outputDirSet)
+		}
+
+		if cfg.TargetExts == TargetExtsOthers {
+			if contains(allTargetExts, getExt(fi.Name())) {
+				log.Println("[NOT_TARGET]", fi.Name())
+				return nil
+			}
+		} else {
+			if !contains(getTargetExts(cfg), getExt(fi.Name())) {
+				log.Println("[NOT_TARGET]", fi.Name())
+				return nil
+			}
 		}
 
 		log.Println(path)
-
 		return prepare(path, fi, cfg, copyListFile, outputDirSet)
 	}); err != nil {
 		log.Fatal(err)
@@ -142,6 +155,13 @@ func getTargetExts(cfg Config) []string {
 		return cfg.TargetVideosExts
 	}
 	return nil
+}
+
+func getAllTargetExts(cfg Config) []string {
+	s1 := append(cfg.TargetDocumentsExts, cfg.TargetImagesExts...)
+	s2 := append(s1, cfg.TargetMusicsExts...)
+	s3 := append(s2, cfg.TargetVideosExts...)
+	return s3
 }
 
 func openListUpLogFile(rootPath string) CloseFunc {
