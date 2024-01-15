@@ -1,9 +1,9 @@
-fromDir: "/Volumes/HD-LCU3"
-toDir: "/Volumes/HD-PCGU3-A/data"
-targetExts: "others"
+fromDir: "/Volumes/HD-PCGU3-A/data/others"
+toDir: "/Volumes/HD-PCGU3-A/data/videos"
+targetExts: "videos"
 targetDocumentsExts: [".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".tsv", ".ini", ".ppt", ".pptx", ".xml", ".epub", ".md", ".url"]
 targetImagesExts: [".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp", ".tiff", ".svg", ".bmp", ".psd", ".raw"]
 targetMusicsExts: [".mp3", ".wav", ".aiff", ".wma", ".aac"]
-targetVideosExts: [".mp4", ".avi", ".mov", ".webm", ".flv", ".wmv", ".avchd", ".f4v", ".swf", ".mkv", "mts"]
-rename: false
+targetVideosExts: [".mp4", ".avi", ".mov", ".webm", ".flv", ".wmv", ".avchd", ".f4v", ".swf", ".mkv", ".mts"]
+rename: true
 operation: 3

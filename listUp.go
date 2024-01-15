@@ -105,25 +105,25 @@ func prepare(fromPath string, fi fs.FileInfo, cfg Config, copyList *os.File, out
 
 func createOutputExtsDirectory(cfg Config) {
 	if cfg.TargetExts == TargetExtsAll {
-		createDirectory(filepath.Join(cfg.ToDir, "documents"))
-		createDirectory(filepath.Join(cfg.ToDir, "images"))
-		createDirectory(filepath.Join(cfg.ToDir, "musics"))
-		createDirectory(filepath.Join(cfg.ToDir, "videos"))
-		createDirectory(filepath.Join(cfg.ToDir, "others"))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsDocuments))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsImages))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsMusics))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsVideos))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsOthers))
 		return
 	}
 
 	switch cfg.TargetExts {
 	case TargetExtsDocuments:
-		createDirectory(filepath.Join(cfg.ToDir, "documents"))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsDocuments))
 	case TargetExtsImages:
-		createDirectory(filepath.Join(cfg.ToDir, "images"))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsImages))
 	case TargetExtsMusics:
-		createDirectory(filepath.Join(cfg.ToDir, "musics"))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsMusics))
 	case TargetExtsVideos:
-		createDirectory(filepath.Join(cfg.ToDir, "videos"))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsVideos))
 	default:
-		createDirectory(filepath.Join(cfg.ToDir, "others"))
+		createDirectory(filepath.Join(cfg.ToDir, TargetExtsOthers))
 	}
 }
 
