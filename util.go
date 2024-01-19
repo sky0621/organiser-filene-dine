@@ -80,3 +80,33 @@ func contains(strs []string, s string) bool {
 	}
 	return false
 }
+
+type oldNewPath struct {
+	oldPath string
+	newPath string
+}
+
+func readSomeBytes(path string) ([]byte, error) {
+	f1, c1 := open(path)
+	defer c1()
+
+	byteArray := make([]byte, 1024)
+	_, err := f1.Read(byteArray)
+	if err != nil {
+		if err.Error() == "EOF" {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return byteArray, nil
+}
+
+func containsSomeBytes(someBytes []byte, bytesFilePathMap map[string][]oldNewPath) bool {
+	for k, _ := range bytesFilePathMap {
+		if string(someBytes) == k {
+			return true
+		}
+	}
+	return false
+}

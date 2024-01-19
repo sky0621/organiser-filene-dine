@@ -5,10 +5,13 @@ import (
 )
 
 const (
-	operationAll          = 9
-	operationPrepare      = 1
-	operationCreateOutDir = 2
-	operationCopy         = 3
+	operationAll              = 9
+	operationPrepare          = 1
+	operationCreateOutDir     = 2
+	operationCopy             = 3
+	operationCheckDuplication = 4
+	operationDeDuplication    = 5
+	operationRenameDir        = 6
 )
 
 func main() {
@@ -35,5 +38,26 @@ func main() {
 	 */
 	if cfg.Operation == operationCopy || cfg.Operation == operationAll {
 		execCopy(cfg.ToDir)
+	}
+
+	/****************************************************************
+	 * check-duplication
+	 */
+	if cfg.Operation == operationCheckDuplication {
+		checkDuplication(cfg.ToDir)
+	}
+
+	/****************************************************************
+	 * de-duplication
+	 */
+	if cfg.Operation == operationDeDuplication {
+		deDuplication(cfg.ToDir)
+	}
+
+	/****************************************************************
+	 * rename-dir
+	 */
+	if cfg.Operation == operationRenameDir {
+		renameDir(cfg.ToDir)
 	}
 }
