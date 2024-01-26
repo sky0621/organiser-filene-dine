@@ -12,6 +12,7 @@ const (
 	operationCheckDuplication = 4
 	operationDeDuplication    = 5
 	operationRenameDir        = 6
+	operationMoveDir          = 7
 )
 
 func main() {
@@ -59,5 +60,12 @@ func main() {
 	 */
 	if cfg.Operation == operationRenameDir {
 		renameDir(cfg.ToDir)
+	}
+
+	/****************************************************************
+	 * move-dir
+	 */
+	if cfg.Operation == operationMoveDir {
+		moveDir(cfg.ToDir)
 	}
 }

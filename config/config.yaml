@@ -1,11 +1,9 @@
-fromDir: "/Volumes/HD-LCU3/整理済"
-toDir: "/Users/sky0621/Documents/images"
-#toDir: "/Volumes/HD-LCU3-A/data/documents"
-#toDir: "/Volumes/HD-PCGU3-A/data/images"
-targetExts: "videos"
+fromDir: ""
+toDir: ""
+targetExts: "images"
 targetDocumentsExts: [".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".tsv", ".ini", ".ppt", ".pptx", ".xml", ".epub", ".md", ".url"]
 targetImagesExts: [".jpg", ".jpeg", ".png", ".gif", ".avif", ".webp", ".tiff", ".svg", ".bmp", ".psd", ".raw"]
 targetMusicsExts: [".mp3", ".wav", ".aiff", ".wma", ".aac"]
 targetVideosExts: [".mp4", ".avi", ".mov", ".webm", ".flv", ".wmv", ".avchd", ".f4v", ".swf", ".mkv", ".mts"]
 rename: true
-operation: 4
+operation: 1

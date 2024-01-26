@@ -8,11 +8,10 @@ import (
 	"time"
 )
 
-const renameDirLogFileName = "renameDir.log"
-const replaceFromStr = "xxxx"
+const moveDirLogFileName = "moveDir.log"
 
-func renameDir(toDir string) {
-	closeLogFile := openRenameDirLogFile(toDir)
+func moveDir(toDir string) {
+	closeLogFile := openMoveDirLogFile(toDir)
 	defer closeLogFile()
 
 	log.Printf("START: %s\n", time.Now().Format(time.RFC3339))
@@ -29,7 +28,11 @@ func renameDir(toDir string) {
 			return nil
 		}
 
-		if !fi.IsDir() {
+		if fi.IsDir() {
+			return nil
+		}
+
+		if !strings.Contains(path, dupDir) {
 			return nil
 		}
 
@@ -37,11 +40,19 @@ func renameDir(toDir string) {
 		log.Println(dir)
 		log.Println(file)
 
-		if strings.Contains(file, replaceFromStr) {
-			newSubDir := strings.Replace(file, replaceFromStr, "", -1)
-			if err := renameFile(path, filepath.Join(toDir, newSubDir)); err != nil {
-				log.Fatal(err)
-			}
+		if file == ".DS_Store" {
+			return nil
+		}
+
+		if strings.Contains(dir, ".organiser-filene-dine") {
+			return nil
+		}
+
+		from := path
+		to := filepath.Join(toDir, file)
+
+		if err := renameFile(from, to); err != nil {
+			log.Fatal(err)
 		}
 
 		return nil
@@ -57,6 +68,6 @@ func renameDir(toDir string) {
 	log.Printf("END  : %s\n", time.Now().Format(time.RFC3339))
 }
 
-func openRenameDirLogFile(rootPath string) CloseFunc {
-	return setupLog(filepath.Join(rootPath, metaDir, renameDirLogFileName))
+func openMoveDirLogFile(rootPath string) CloseFunc {
+	return setupLog(filepath.Join(rootPath, metaDir, moveDirLogFileName))
 }
